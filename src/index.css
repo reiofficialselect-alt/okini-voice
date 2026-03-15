@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+:root{--bg:#0B0A12;--bg2:#12111C;--card:rgba(255,255,255,0.035);--card-h:rgba(255,255,255,0.06);--pink:#E8B4B8;--pink-g:rgba(232,180,184,0.3);--pink-hot:#FF6B8A;--pink-s:#C48B90;--purple:#9B7FBF;--blue:#6B8FE8;--gold:#E8D5A8;--green:#6BCFA0;--teal:#5BC4BE;--red:#E87070;--t:#E8E4F0;--td:rgba(232,228,240,0.5);--tm:rgba(232,228,240,0.25);--bdr:rgba(255,255,255,0.06);--f:'DM Sans',sans-serif;--fd:'Playfair Display',serif;--r:16px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);color:var(--t);background:var(--bg);line-height:1.7;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+@keyframes oFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.06)}66%{transform:translate(-25px,35px) scale(0.94)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.vc-anim{opacity:0;transform:translateY(16px);animation:fadeUp 0.5s forwards}
