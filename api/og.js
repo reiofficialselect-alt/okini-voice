@@ -10,7 +10,7 @@ export default async function handler(req) {
 
   let review = null
   if (id) {
-    const res = await fetch(`${supabaseUrl}/rest/v1/reviews?id=eq.${id}&select=*`, {
+    const res = await fetch(supabaseUrl + '/rest/v1/reviews?id=eq.' + id + '&select=*', {
       headers: { apikey: supabaseKey, Authorization: 'Bearer ' + supabaseKey }
     })
     const data = await res.json()
@@ -19,59 +19,51 @@ export default async function handler(req) {
 
   const w = format === 'story' ? 1080 : 1200
   const h = format === 'story' ? 1920 : 630
-
-  const catColors = {
-    '客質/客層': '#6B8FE8', '給与/報酬/待遇': '#E8D5A8', '人間関係': '#E8B4B8',
-    '通勤環境': '#9B7FBF', '求人ページ信用度': '#5BC4BE', '待機環境': '#6BCFA0'
-  }
-  const catColor = review ? (catColors[review.category] || '#E8B4B8') : '#E8B4B8'
-  const stars = review ? ''.repeat(review.rating || 5) + ''.repeat(5 - (review.rating || 5)) : ''
-  const body = review ? (review.body || '').slice(0, 80) + ((review.body || '').length > 80 ? '' : '') : 'OKINI蒲田のリアルな口コミ'
-  const category = review ? review.category : ''
-
   const isStory = format === 'story'
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#0B0A12"/>
-        <stop offset="100%" stop-color="#1A1428"/>
-      </linearGradient>
-      <filter id="glow"><feGaussianBlur stdDeviation="40" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter>
-    </defs>
-    <rect width="${w}" height="${h}" fill="url(#bg)"/>
-    <circle cx="${isStory ? 200 : 100}" cy="${isStory ? 300 : 80}" r="${isStory ? 250 : 180}" fill="#E8B4B8" opacity="0.08" filter="url(#glow)"/>
-    <circle cx="${isStory ? 800 : 1000}" cy="${isStory ? 1400 : 500}" r="${isStory ? 200 : 150}" fill="#9B7FBF" opacity="0.06" filter="url(#glow)"/>
-    <rect x="${isStory ? 60 : 40}" y="${isStory ? 60 : 40}" width="4" height="${isStory ? 1800 : 550}" rx="2" fill="${catColor}" opacity="0.6"/>
-    <text x="${isStory ? 90 : 70}" y="${isStory ? 120 : 90}" font-family="serif" font-size="${isStory ? 42 : 28}" font-style="italic" fill="#E8B4B8" opacity="0.9"> OKINI Tokyo in 蒲田</text>
-    <text x="${isStory ? 90 : 70}" y="${isStory ? 175 : 125}" font-family="sans-serif" font-size="${isStory ? 30 : 18}" fill="rgba(232,228,240,0.4)">Real Voice</text>
-    <line x1="${isStory ? 90 : 70}" y1="${isStory ? 220 : 155}" x2="${isStory ? 990 : 1130}" y2="${isStory ? 220 : 155}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-    <text x="${isStory ? 90 : 70}" y="${isStory ? 350 : 250}" font-family="serif" font-size="${isStory ? 48 : 32}" font-style="italic" fill="#E8E4F0" opacity="0.95">"</text>
-    ${wrapText(body, isStory ? 90 : 70, isStory ? 420 : 280, isStory ? 38 : 24, isStory ? 56 : 36, w - (isStory ? 150 : 140))}
-    <line x1="${isStory ? 90 : 70}" y1="${isStory ? 1200 : 420}" x2="${isStory ? 990 : 1130}" y2="${isStory ? 1200 : 420}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-    <text x="${isStory ? 90 : 70}" y="${isStory ? 1280 : 470}" font-family="sans-serif" font-size="${isStory ? 36 : 22}" fill="${catColor}">${stars}  ${category}</text>
-    <text x="${isStory ? 90 : 70}" y="${isStory ? 1380 : 520}" font-family="sans-serif" font-size="${isStory ? 28 : 16}" fill="rgba(232,228,240,0.4)">#OKINI蒲田 #高収入バイト</text>
-  </svg>`
+  const catColors = { '客質/客層': '#6B8FE8', '給与/報酬/待遇': '#E8D5A8', '人間関係': '#E8B4B8', '通勤環境': '#9B7FBF', '求人ページ信用度': '#5BC4BE', '待機環境': '#6BCFA0' }
+  const cc = review ? (catColors[review.category] || '#E8B4B8') : '#E8B4B8'
+  const stars = review ? '\u2605'.repeat(review.rating || 5) : '\u2605\u2605\u2605\u2605\u2605'
+  const body = review ? (review.body || '').slice(0, isStory ? 100 : 60) + ((review.body || '').length > (isStory ? 100 : 60) ? '\u2026' : '') : 'OKINI\u84b2\u7530\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df'
+  const category = review ? review.category : ''
+  const fs = isStory ? 44 : 36
+  const lh = isStory ? 66 : 52
+  const cpl = Math.floor((w - (isStory ? 180 : 160)) / (fs * 0.55))
+
+  const lines = []
+  let rem = body
+  while (rem.length > 0 && lines.length < (isStory ? 5 : 3)) {
+    lines.push(rem.slice(0, cpl))
+    rem = rem.slice(cpl)
+  }
+  const bodyY = isStory ? 600 : 220
+  const textSvg = lines.map(function(line, i) {
+    return '<text x="' + (isStory ? 100 : 80) + '" y="' + (bodyY + i * lh) + '" font-family="sans-serif" font-size="' + fs + '" fill="rgba(232,228,240,0.85)">' + escapeXml(line) + '</text>'
+  }).join('\n')
+
+  const starsY = bodyY + lines.length * lh + (isStory ? 60 : 40)
+  const catY = starsY + (isStory ? 50 : 36)
+  const tagY = isStory ? h - 200 : h - 40
+
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+    '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0B0A12"/><stop offset="100%" stop-color="#1A1428"/></linearGradient>' +
+    '<filter id="glow"><feGaussianBlur stdDeviation="60"/></filter></defs>' +
+    '<rect width="' + w + '" height="' + h + '" fill="url(#bg)"/>' +
+    '<circle cx="' + (isStory ? 200 : 150) + '" cy="' + (isStory ? 300 : 100) + '" r="' + (isStory ? 300 : 220) + '" fill="#E8B4B8" opacity="0.07" filter="url(#glow)"/>' +
+    '<circle cx="' + (isStory ? 850 : 1050) + '" cy="' + (isStory ? 1500 : 500) + '" r="' + (isStory ? 250 : 180) + '" fill="#9B7FBF" opacity="0.05" filter="url(#glow)"/>' +
+    '<rect x="' + (isStory ? 80 : 60) + '" y="' + (isStory ? 80 : 40) + '" width="6" height="' + (isStory ? 1760 : 550) + '" rx="3" fill="' + cc + '" opacity="0.7"/>' +
+    '<text x="' + (isStory ? 110 : 90) + '" y="' + (isStory ? 180 : 100) + '" font-family="serif" font-size="' + (isStory ? 52 : 38) + '" font-style="italic" fill="#E8B4B8">\u2726 OKINI Tokyo in \u84b2\u7530</text>' +
+    '<text x="' + (isStory ? 110 : 90) + '" y="' + (isStory ? 240 : 140) + '" font-family="sans-serif" font-size="' + (isStory ? 32 : 22) + '" fill="rgba(232,228,240,0.35)">Real Voice</text>' +
+    '<text x="' + (isStory ? 100 : 80) + '" y="' + (bodyY - (isStory ? 40 : 20)) + '" font-family="serif" font-size="' + (isStory ? 80 : 60) + '" fill="rgba(232,180,184,0.15)">\u201C</text>' +
+    textSvg +
+    '<text x="' + (isStory ? 100 : 80) + '" y="' + starsY + '" font-family="sans-serif" font-size="' + (isStory ? 40 : 30) + '" fill="' + cc + '">' + stars + '</text>' +
+    '<text x="' + (isStory ? 100 : 80) + '" y="' + catY + '" font-family="sans-serif" font-size="' + (isStory ? 34 : 24) + '" fill="' + cc + '" opacity="0.8">' + escapeXml(category) + '</text>' +
+    '<text x="' + (isStory ? 100 : 80) + '" y="' + tagY + '" font-family="sans-serif" font-size="' + (isStory ? 28 : 18) + '" fill="rgba(232,228,240,0.3)">#OKINI\u84b2\u7530 #\u9ad8\u53ce\u5165\u30d0\u30a4\u30c8</text>' +
+    '</svg>'
 
   return new Response(svg, {
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'public, max-age=3600',
-    },
+    headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=3600' }
   })
-}
-
-function wrapText(text, x, startY, fontSize, lineHeight, maxWidth) {
-  const charsPerLine = Math.floor(maxWidth / fontSize)
-  const lines = []
-  let remaining = text
-  while (remaining.length > 0 && lines.length < 4) {
-    lines.push(remaining.slice(0, charsPerLine))
-    remaining = remaining.slice(charsPerLine)
-  }
-  return lines.map((line, i) =>
-    `<text x="${x}" y="${startY + i * lineHeight}" font-family="sans-serif" font-size="${fontSize}" fill="rgba(232,228,240,0.7)">${escapeXml(line)}</text>`
-  ).join('\n')
 }
 
 function escapeXml(s) {
