@@ -1,20 +1,17 @@
 import { supabase, isSupabaseConfigured } from './supabase'
 import seedData from '../data/reviews-seed.json'
 
-// ローカルストレージキー
 const LS_KEY = 'okini_reviews'
 
 function getLocal() {
   const stored = localStorage.getItem(LS_KEY)
   if (stored) return JSON.parse(stored)
-  // シードデータを初期化（全件approved扱い）
   const init = seedData.map(r => ({ ...r, status: 'approved', rating: 5 }))
   localStorage.setItem(LS_KEY, JSON.stringify(init))
   return init
 }
 function saveLocal(data) { localStorage.setItem(LS_KEY, JSON.stringify(data)) }
 
-// --- 公開口コミ取得 ---
 export async function fetchApprovedReviews() {
   if (isSupabaseConfigured()) {
     const { data, error } = await supabase
@@ -28,7 +25,6 @@ export async function fetchApprovedReviews() {
   return getLocal().filter(r => r.status === 'approved')
 }
 
-// --- 全口コミ取得（管理用） ---
 export async function fetchAllReviews() {
   if (isSupabaseConfigured()) {
     const { data, error } = await supabase
@@ -41,26 +37,30 @@ export async function fetchAllReviews() {
   return getLocal()
 }
 
-// --- 口コミ投稿 ---
 export async function submitReview(review) {
-  const newReview = {
-    ...review,
-    id: 'r' + Date.now(),
-    status: 'pending',
-    created_at: new Date().toISOString(),
-  }
   if (isSupabaseConfigured()) {
-    const { data, error } = await supabase.from('reviews').insert([newReview]).select()
+    const { data, error } = await supabase
+      .from('reviews')
+      .insert([{
+        category: review.category,
+        type: review.type,
+        rating: review.rating,
+        tags: review.tags,
+        body: review.body,
+        date: review.date,
+        status: 'pending',
+      }])
+      .select()
     if (error) { console.error(error); throw error }
     return data[0]
   }
+  const newReview = { ...review, id: 'r' + Date.now(), status: 'pending', created_at: new Date().toISOString() }
   const all = getLocal()
   all.unshift(newReview)
   saveLocal(all)
   return newReview
 }
 
-// --- ステータス更新（管理） ---
 export async function updateReviewStatus(id, status) {
   if (isSupabaseConfigured()) {
     const { error } = await supabase
@@ -79,9 +79,16 @@ export async function updateReviewStatus(id, status) {
   }
 }
 
-// --- シードデータ投入 ---
 export async function seedReviews() {
-  const reviews = seedData.map(r => ({ ...r, status: 'approved', rating: 5 }))
+  const reviews = seedData.map(r => ({
+    category: r.category,
+    type: r.type,
+    rating: 5,
+    tags: [],
+    body: r.body,
+    date: r.date,
+    status: 'approved',
+  }))
   if (isSupabaseConfigured()) {
     const { error } = await supabase.from('reviews').insert(reviews)
     if (error) { console.error(error); throw error }
