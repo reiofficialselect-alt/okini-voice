@@ -7,7 +7,19 @@ const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 
 const TM = {'\u7d66\u4e0e':'\u266b \u7a3c\u3052\u308b\u74b0\u5883','\u5ba2\u8cea':'\u2661 \u7d33\u58eb\u69d8\u591a\u6570','\u4eba\u9593':'\u2726 \u5c45\u5fc3\u5730\u629c\u7fa4','\u6c42\u4eba':'\u2727 \u5618\u306a\u3057\u5ba3\u8a00','\u901a\u52e4':'\u2606 \u30a2\u30af\u30bb\u30b9\u25ce','\u5f85\u6a5f':'\u2726 \u5feb\u9069\u7a7a\u9593'}
 function gT(c){if(!c)return'\u2726 Real Voice';for(var k in TM){if(c.indexOf(k)!==-1)return TM[k]}return'\u2726 Real Voice'}
-function eH(b){if(!b)return'';var s=b.split(/[\u3002\uff01!]/g).filter(function(x){return x.trim().length>4});if(!s.length)return b.slice(0,40);var sh=s.filter(function(x){return x.trim().length<=25});return(sh.length?sh[0]:s[0]).trim()}
+
+function eH(b){
+  if(!b)return''
+  var s=b.split(/[\u3002\uff01!]/g).filter(function(x){return x.trim().length>4})
+  if(!s.length)return b.slice(0,40)
+  var best=s.filter(function(x){var l=x.trim().length;return l>=8&&l<=25})
+  if(best.length)return best[0].trim()
+  var mid=s.filter(function(x){return x.trim().length<=35})
+  if(mid.length)return mid[0].trim()
+  return s[0].trim().slice(0,35)
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
 export default async function handler(req) {
   var url = new URL(req.url)
@@ -23,18 +35,34 @@ export default async function handler(req) {
     } catch(e){}
   }
 
+  var quote = rv ? eH(rv.body) : 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u58f0'
+  var cat = (rv&&rv.category)?rv.category:''
+  var title = gT(cat)
+
   if (mode === 'html') {
     var ogImg = url.origin + '/api/og?id=' + id
     var pageUrl = url.origin + '/review/' + id
+    var ogTitle = 'OKINI Tokyo | ' + (cat || 'Real Voice')
+    var ogDesc = rv ? ('\u300c' + quote + '\u300d ' + (rv.body||'').slice(0,80)) : 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df'
     return new Response(
-      '<!DOCTYPE html><html><head><meta charset="utf-8"><title>OKINI Tokyo</title><meta property="og:title" content="OKINI Tokyo | Real Voice"/><meta property="og:description" content="OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df"/><meta property="og:image" content="'+ogImg+'"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:image" content="'+ogImg+'"/><script>window.location.replace("'+pageUrl+'")</script></head><body></body></html>',
+      '<!DOCTYPE html><html><head><meta charset="utf-8">'+
+      '<title>'+esc(ogTitle)+'</title>'+
+      '<meta property="og:title" content="'+esc(ogTitle)+'"/>'+
+      '<meta property="og:description" content="'+esc(ogDesc)+'"/>'+
+      '<meta property="og:image" content="'+ogImg+'"/>'+
+      '<meta property="og:image:width" content="1200"/>'+
+      '<meta property="og:image:height" content="630"/>'+
+      '<meta property="og:url" content="'+pageUrl+'"/>'+
+      '<meta name="twitter:card" content="summary_large_image"/>'+
+      '<meta name="twitter:title" content="'+esc(ogTitle)+'"/>'+
+      '<meta name="twitter:description" content="'+esc(ogDesc)+'"/>'+
+      '<meta name="twitter:image" content="'+ogImg+'"/>'+
+      '<script>window.location.replace("'+pageUrl+'")</script>'+
+      '</head><body></body></html>',
       {headers:{'Content-Type':'text/html; charset=utf-8'}}
     )
   }
 
-  var quote = rv ? eH(rv.body) : 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u58f0'
-  var cat = (rv&&rv.category)?rv.category:''
-  var title = gT(cat)
   var detail = rv&&rv.body?rv.body.slice(0,60)+(rv.body.length>60?'...':''):''
   var date = ''
   if(rv&&rv.date)date=rv.date
