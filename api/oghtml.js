@@ -1,58 +1,24 @@
 ﻿export const config = { runtime: 'edge' }
 
-const SB = 'https://ezhukcbjrhxzamcjvial.supabase.co'
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6aHVrY2Jqcmh4emFtY2p2aWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODU3NTcsImV4cCI6MjA4OTE2MTc1N30.Ziw9MXtVhcVw22EUzXx0pASjGG1_pN0_qLQZlPQJi6U'
+export default function handler(req) {
+  var id = new URL(req.url).searchParams.get('id') || ''
+  var origin = new URL(req.url).origin
+  var ogImg = origin + '/api/og?id=' + id
+  var pageUrl = origin + '/review/' + id
 
-export default async function handler(req) {
-  var url = new URL(req.url)
-  var id = url.searchParams.get('id') || ''
-  var ua = (req.headers.get('user-agent') || '').toLowerCase()
-  var isBot = /bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|line|slack|discord|telegram|whatsapp|preview|fban|fbav/i.test(ua)
-  var pageUrl = url.origin + '/review/' + id
-
-  if (!isBot) {
-    return Response.redirect(pageUrl, 302)
-  }
-
-  var title = 'OKINI Tokyo | Real Voice'
-  var desc = 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df'
-
-  if (id) {
-    try {
-      var r = await fetch(SB + '/rest/v1/reviews?id=eq.' + id + '&select=body,category', {
-        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY }
-      })
-      var d = await r.json()
-      if (d && d.length) {
-        var body = d[0].body || ''
-        desc = body.slice(0, 120) + (body.length > 120 ? '...' : '')
-        title = 'OKINI Tokyo | ' + (d[0].category || 'Real Voice')
-      }
-    } catch(e) {}
-  }
-
-  var ogImg = url.origin + '/api/og?id=' + id
-
-  var html = '<!DOCTYPE html><html><head><meta charset="utf-8"/>' +
-    '<title>' + esc(title) + '</title>' +
-    '<meta property="og:title" content="' + esc(title) + '"/>' +
-    '<meta property="og:description" content="' + esc(desc) + '"/>' +
+  return new Response(
+    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<title>OKINI Tokyo | Real Voice</title>' +
+    '<meta property="og:title" content="OKINI Tokyo | Real Voice"/>' +
+    '<meta property="og:description" content="OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df"/>' +
     '<meta property="og:image" content="' + ogImg + '"/>' +
     '<meta property="og:image:width" content="1200"/>' +
     '<meta property="og:image:height" content="630"/>' +
     '<meta property="og:url" content="' + pageUrl + '"/>' +
-    '<meta property="og:type" content="article"/>' +
     '<meta name="twitter:card" content="summary_large_image"/>' +
-    '<meta name="twitter:title" content="' + esc(title) + '"/>' +
-    '<meta name="twitter:description" content="' + esc(desc) + '"/>' +
     '<meta name="twitter:image" content="' + ogImg + '"/>' +
-    '</head><body></body></html>'
-
-  return new Response(html, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
-  })
-}
-
-function esc(s) {
-  return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    '<script>window.location.replace("' + pageUrl + '")</script>' +
+    '</head><body></body></html>',
+    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  )
 }
