@@ -1,71 +1,94 @@
+﻿import { ImageResponse } from '@vercel/og'
+
 export const config = { runtime: 'edge' }
 
-export default async function handler(req) {
-  const url = new URL(req.url)
-  const id = url.searchParams.get('id')
-  const format = url.searchParams.get('format') || 'og'
+const SB = 'https://ezhukcbjrhxzamcjvial.supabase.co'
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6aHVrY2Jqcmh4emFtY2p2aWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODU3NTcsImV4cCI6MjA4OTE2MTc1N30.Ziw9MXtVhcVw22EUzXx0pASjGG1_pN0_qLQZlPQJi6U'
 
-  const supabaseUrl = 'https://ezhukcbjrhxzamcjvial.supabase.co'
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6aHVrY2Jqcmh4emFtY2p2aWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODU3NTcsImV4cCI6MjA4OTE2MTc1N30.Ziw9MXtVhcVw22EUzXx0pASjGG1_pN0_qLQZlPQJi6U'
-
-  let review = null
-  if (id) {
-    const res = await fetch(supabaseUrl + '/rest/v1/reviews?id=eq.' + id + '&select=*', {
-      headers: { apikey: supabaseKey, Authorization: 'Bearer ' + supabaseKey }
-    })
-    const data = await res.json()
-    if (data && data.length > 0) review = data[0]
-  }
-
-  const w = format === 'story' ? 1080 : 1200
-  const h = format === 'story' ? 1920 : 630
-  const isStory = format === 'story'
-
-  const catColors = { '客質/客層': '#6B8FE8', '給与/報酬/待遇': '#E8D5A8', '人間関係': '#E8B4B8', '通勤環境': '#9B7FBF', '求人ページ信用度': '#5BC4BE', '待機環境': '#6BCFA0' }
-  const cc = review ? (catColors[review.category] || '#E8B4B8') : '#E8B4B8'
-  const stars = review ? '\u2605'.repeat(review.rating || 5) : '\u2605\u2605\u2605\u2605\u2605'
-  const body = review ? (review.body || '').slice(0, isStory ? 100 : 60) + ((review.body || '').length > (isStory ? 100 : 60) ? '\u2026' : '') : 'OKINI\u84b2\u7530\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df'
-  const category = review ? review.category : ''
-  const fs = isStory ? 44 : 36
-  const lh = isStory ? 66 : 52
-  const cpl = Math.floor((w - (isStory ? 180 : 160)) / (fs * 0.55))
-
-  const lines = []
-  let rem = body
-  while (rem.length > 0 && lines.length < (isStory ? 5 : 3)) {
-    lines.push(rem.slice(0, cpl))
-    rem = rem.slice(cpl)
-  }
-  const bodyY = isStory ? 600 : 220
-  const textSvg = lines.map(function(line, i) {
-    return '<text x="' + (isStory ? 100 : 80) + '" y="' + (bodyY + i * lh) + '" font-family="sans-serif" font-size="' + fs + '" fill="rgba(232,228,240,0.85)">' + escapeXml(line) + '</text>'
-  }).join('\n')
-
-  const starsY = bodyY + lines.length * lh + (isStory ? 60 : 40)
-  const catY = starsY + (isStory ? 50 : 36)
-  const tagY = isStory ? h - 200 : h - 40
-
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
-    '<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0B0A12"/><stop offset="100%" stop-color="#1A1428"/></linearGradient>' +
-    '<filter id="glow"><feGaussianBlur stdDeviation="60"/></filter></defs>' +
-    '<rect width="' + w + '" height="' + h + '" fill="url(#bg)"/>' +
-    '<circle cx="' + (isStory ? 200 : 150) + '" cy="' + (isStory ? 300 : 100) + '" r="' + (isStory ? 300 : 220) + '" fill="#E8B4B8" opacity="0.07" filter="url(#glow)"/>' +
-    '<circle cx="' + (isStory ? 850 : 1050) + '" cy="' + (isStory ? 1500 : 500) + '" r="' + (isStory ? 250 : 180) + '" fill="#9B7FBF" opacity="0.05" filter="url(#glow)"/>' +
-    '<rect x="' + (isStory ? 80 : 60) + '" y="' + (isStory ? 80 : 40) + '" width="6" height="' + (isStory ? 1760 : 550) + '" rx="3" fill="' + cc + '" opacity="0.7"/>' +
-    '<text x="' + (isStory ? 110 : 90) + '" y="' + (isStory ? 180 : 100) + '" font-family="serif" font-size="' + (isStory ? 52 : 38) + '" font-style="italic" fill="#E8B4B8">\u2726 OKINI Tokyo in \u84b2\u7530</text>' +
-    '<text x="' + (isStory ? 110 : 90) + '" y="' + (isStory ? 240 : 140) + '" font-family="sans-serif" font-size="' + (isStory ? 32 : 22) + '" fill="rgba(232,228,240,0.35)">Real Voice</text>' +
-    '<text x="' + (isStory ? 100 : 80) + '" y="' + (bodyY - (isStory ? 40 : 20)) + '" font-family="serif" font-size="' + (isStory ? 80 : 60) + '" fill="rgba(232,180,184,0.15)">\u201C</text>' +
-    textSvg +
-    '<text x="' + (isStory ? 100 : 80) + '" y="' + starsY + '" font-family="sans-serif" font-size="' + (isStory ? 40 : 30) + '" fill="' + cc + '">' + stars + '</text>' +
-    '<text x="' + (isStory ? 100 : 80) + '" y="' + catY + '" font-family="sans-serif" font-size="' + (isStory ? 34 : 24) + '" fill="' + cc + '" opacity="0.8">' + escapeXml(category) + '</text>' +
-    '<text x="' + (isStory ? 100 : 80) + '" y="' + tagY + '" font-family="sans-serif" font-size="' + (isStory ? 28 : 18) + '" fill="rgba(232,228,240,0.3)">#OKINI\u84b2\u7530 #\u9ad8\u53ce\u5165\u30d0\u30a4\u30c8</text>' +
-    '</svg>'
-
-  return new Response(svg, {
-    headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=3600' }
-  })
+const TITLES = {
+  '\u7d66\u4e0e': '\u266b \u7a3c\u3052\u308b\u74b0\u5883',
+  '\u5ba2\u8cea': '\u2661 \u7d33\u58eb\u69d8\u591a\u6570',
+  '\u4eba\u9593': '\u2726 \u5c45\u5fc3\u5730\u629c\u7fa4',
+  '\u6c42\u4eba': '\u2727 \u5618\u306a\u3057\u5ba3\u8a00',
+  '\u901a\u52e4': '\u2606 \u30a2\u30af\u30bb\u30b9\u25ce',
+  '\u5f85\u6a5f': '\u2726 \u5feb\u9069\u7a7a\u9593'
 }
 
-function escapeXml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+function getTitle(c) {
+  if (!c) return '\u2726 Real Voice'
+  for (var k in TITLES) { if (c.indexOf(k) !== -1) return TITLES[k] }
+  return '\u2726 Real Voice'
+}
+
+function extractHL(b) {
+  if (!b) return ''
+  var s = b.split(/[\u3002\uff01!]/g).filter(function(x){ return x.trim().length > 4 })
+  if (!s.length) return b.slice(0, 60)
+  var sh = s.filter(function(x){ return x.trim().length <= 30 })
+  return (sh.length ? sh[0] : s[0]).trim()
+}
+
+export default async function handler(req) {
+  var id = new URL(req.url).searchParams.get('id')
+
+  var rv = null
+  if (id) {
+    try {
+      var r = await fetch(SB + '/rest/v1/reviews?id=eq.' + id + '&select=*', {
+        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY }
+      })
+      var d = await r.json()
+      if (d && d.length) rv = d[0]
+    } catch(e) {}
+  }
+
+  var quote = rv ? extractHL(rv.body) : 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u58f0'
+  var cat = (rv && rv.category) ? rv.category : ''
+  var title = getTitle(cat)
+  var detail = rv && rv.body ? rv.body.slice(0, 80) + (rv.body.length > 80 ? '...' : '') : ''
+  var date = ''
+  if (rv && rv.date) date = rv.date
+  else if (rv && rv.created_at) date = rv.created_at.slice(0,7).replace('-','.')
+
+  var allText = 'OKINI Tokyo\u6771\u4eac\u90fd\u5927\u7530\u533a\u84b2\u7530\u53e3\u30b3\u30df37\u4ef6' + quote + detail + cat + title + 'A\u3055\u3093okini-voice.vercel.app\u266b\u2661\u2726\u2727\u2606'
+
+  var fontData = null
+  try {
+    var css = await (await fetch('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@800&text=' + encodeURIComponent(allText))).text()
+    var furl = css.match(/src: url\((.+?)\)/)
+    if (furl && furl[1]) fontData = await (await fetch(furl[1])).arrayBuffer()
+  } catch(e) {}
+
+  return new ImageResponse(
+    (
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: '#0f0d18', fontFamily: '"Noto Sans JP",sans-serif', color: '#fff', padding: 48, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+          <span style={{ fontSize: 42, fontWeight: 800, letterSpacing: 3 }}>OKINI Tokyo</span>
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg,#E8457C,#9B6DD7)', padding: '4px 16px', borderRadius: 20 }}>{title}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.35)' }}>{'\u6771\u4eac\u90fd\u5927\u7530\u533a \u84b2\u7530'}</span>
+          <span style={{ fontSize: 18, color: 'rgba(255,255,255,0.2)' }}>{'\u2022 37\u4ef6'}</span>
+          {cat ? <span style={{ fontSize: 18, color: '#9B6DD7', fontWeight: 800, background: 'rgba(155,109,215,0.12)', padding: '2px 14px', borderRadius: 12 }}>{cat}</span> : null}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', background: 'linear-gradient(90deg,rgba(201,168,76,0.22),rgba(201,168,76,0.08))', border: '2px solid rgba(201,168,76,0.28)', borderRadius: 8, padding: '24px 28px', marginBottom: 16 }}>
+          <span style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.55, color: '#E8D48B' }}>{'"' + quote + '"'}</span>
+        </div>
+        <div style={{ display: 'flex', fontSize: 20, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>{detail}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto' }}>
+          <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.15)' }}>okini-voice.vercel.app</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <span style={{ fontSize: 24, fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>{'A\u3055\u3093'}</span>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)' }}>{date}</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', position: 'absolute', bottom: 0, left: 0, width: '100%', height: 3, background: 'linear-gradient(90deg,rgba(201,168,76,0.5),rgba(232,69,124,0.4),transparent)' }}></div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      fonts: fontData ? [{ name: 'Noto Sans JP', data: fontData, weight: 800, style: 'normal' }] : []
+    }
+  )
 }
