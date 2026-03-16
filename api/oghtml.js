@@ -8,12 +8,10 @@ export default async function handler(req) {
   var id = url.searchParams.get('id') || ''
   var ua = (req.headers.get('user-agent') || '').toLowerCase()
   var isBot = /bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|line|slack|discord|telegram|whatsapp|preview|fban|fbav/i.test(ua)
+  var pageUrl = url.origin + '/review/' + id
 
   if (!isBot) {
-    return new Response(
-      '<html><head><script>location.replace("/#/review/' + id + '")</script></head><body></body></html>',
-      { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-    )
+    return Response.redirect(pageUrl, 302)
   }
 
   var title = 'OKINI Tokyo | Real Voice'
@@ -34,7 +32,6 @@ export default async function handler(req) {
   }
 
   var ogImg = url.origin + '/api/og?id=' + id
-  var pageUrl = url.origin + '/review/' + id
 
   var html = '<!DOCTYPE html><html><head><meta charset="utf-8"/>' +
     '<title>' + esc(title) + '</title>' +
