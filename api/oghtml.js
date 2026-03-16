@@ -6,6 +6,15 @@ const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 export default async function handler(req) {
   var url = new URL(req.url)
   var id = url.searchParams.get('id') || ''
+  var ua = (req.headers.get('user-agent') || '').toLowerCase()
+  var isBot = /bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|line|slack|discord|telegram|whatsapp|preview|fban|fbav/i.test(ua)
+
+  if (!isBot) {
+    return new Response(
+      '<html><head><script>location.replace("/#/review/' + id + '")</script></head><body></body></html>',
+      { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    )
+  }
 
   var title = 'OKINI Tokyo | Real Voice'
   var desc = 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df'
@@ -27,31 +36,24 @@ export default async function handler(req) {
   var ogImg = url.origin + '/api/og?id=' + id
   var pageUrl = url.origin + '/review/' + id
 
-  try {
-    var spaRes = await fetch(url.origin + '/index.html')
-    var spaHtml = await spaRes.text()
+  var html = '<!DOCTYPE html><html><head><meta charset="utf-8"/>' +
+    '<title>' + esc(title) + '</title>' +
+    '<meta property="og:title" content="' + esc(title) + '"/>' +
+    '<meta property="og:description" content="' + esc(desc) + '"/>' +
+    '<meta property="og:image" content="' + ogImg + '"/>' +
+    '<meta property="og:image:width" content="1200"/>' +
+    '<meta property="og:image:height" content="630"/>' +
+    '<meta property="og:url" content="' + pageUrl + '"/>' +
+    '<meta property="og:type" content="article"/>' +
+    '<meta name="twitter:card" content="summary_large_image"/>' +
+    '<meta name="twitter:title" content="' + esc(title) + '"/>' +
+    '<meta name="twitter:description" content="' + esc(desc) + '"/>' +
+    '<meta name="twitter:image" content="' + ogImg + '"/>' +
+    '</head><body></body></html>'
 
-    var ogTags =
-      '<meta property="og:title" content="' + esc(title) + '"/>' +
-      '<meta property="og:description" content="' + esc(desc) + '"/>' +
-      '<meta property="og:image" content="' + ogImg + '"/>' +
-      '<meta property="og:image:width" content="1200"/>' +
-      '<meta property="og:image:height" content="630"/>' +
-      '<meta property="og:url" content="' + pageUrl + '"/>' +
-      '<meta property="og:type" content="article"/>' +
-      '<meta name="twitter:card" content="summary_large_image"/>' +
-      '<meta name="twitter:title" content="' + esc(title) + '"/>' +
-      '<meta name="twitter:description" content="' + esc(desc) + '"/>' +
-      '<meta name="twitter:image" content="' + ogImg + '"/>'
-
-    var result = spaHtml.replace('</head>', ogTags + '</head>')
-
-    return new Response(result, {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' }
-    })
-  } catch(e) {
-    return Response.redirect(pageUrl, 302)
-  }
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
+  })
 }
 
 function esc(s) {
