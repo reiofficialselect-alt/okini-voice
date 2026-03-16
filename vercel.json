@@ -1,6 +1,6 @@
 ﻿{
   "rewrites": [
-    { "source": "/s/:id", "destination": "/api/oghtml?id=:id" },
+    { "source": "/s/:id", "destination": "/api/og?id=:id&mode=html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
