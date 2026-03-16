@@ -8,7 +8,7 @@ export default function SharePanel({ review }) {
 
   if (!review) return null
 
-  var shareUrl = BASE_URL + '/s/' + review.id
+  var shareUrl = BASE_URL + '/api/og?id=' + review.id + '&mode=html'
 
   async function getTrackingUrl() {
     try {
