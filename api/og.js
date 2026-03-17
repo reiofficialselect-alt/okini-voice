@@ -5,8 +5,8 @@ export const config = { runtime: 'edge' }
 const SB = 'https://ezhukcbjrhxzamcjvial.supabase.co'
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6aHVrY2Jqcmh4emFtY2p2aWFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODU3NTcsImV4cCI6MjA4OTE2MTc1N30.Ziw9MXtVhcVw22EUzXx0pASjGG1_pN0_qLQZlPQJi6U'
 
-const TM = {'\u7d66\u4e0e':'\u266b \u7a3c\u3052\u308b\u74b0\u5883','\u5ba2\u8cea':'\u2661 \u7d33\u58eb\u69d8\u591a\u6570','\u4eba\u9593':'\u2726 \u5c45\u5fc3\u5730\u629c\u7fa4','\u6c42\u4eba':'\u2727 \u5618\u306a\u3057\u5ba3\u8a00','\u901a\u52e4':'\u2606 \u30a2\u30af\u30bb\u30b9\u25ce','\u5f85\u6a5f':'\u2726 \u5feb\u9069\u7a7a\u9593'}
-function gT(c){if(!c)return'\u2726 Real Voice';for(var k in TM){if(c.indexOf(k)!==-1)return TM[k]}return'\u2726 Real Voice'}
+const TM = {'\u7d66\u4e0e':'\u7a3c\u3052\u308b\u74b0\u5883','\u5ba2\u8cea':'\u7d33\u58eb\u69d8\u591a\u6570','\u4eba\u9593':'\u5c45\u5fc3\u5730\u629c\u7fa4','\u6c42\u4eba':'\u5618\u306a\u3057\u5ba3\u8a00','\u901a\u52e4':'\u30a2\u30af\u30bb\u30b9\u25ce','\u5f85\u6a5f':'\u5feb\u9069\u7a7a\u9593'}
+function gT(c){if(!c)return'Real Voice';for(var k in TM){if(c.indexOf(k)!==-1)return TM[k]}return'Real Voice'}
 
 function eH(b){
   if(!b)return''
