@@ -40,7 +40,7 @@ export default async function handler(req) {
   var title = gT(cat)
 
   if (mode === 'html') {
-    var ogImg = url.origin + '/api/og?id=' + id
+    var ogImg = url.origin + '/api/og?id=' + id + '&v=' + Date.now()
     var pageUrl = url.origin + '/review/' + id
     var ogTitle = 'OKINI Tokyo | ' + (cat || 'Real Voice')
     var ogDesc = rv ? ('\u300c' + quote + '\u300d ' + (rv.body||'').slice(0,80)) : 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u53e3\u30b3\u30df'
