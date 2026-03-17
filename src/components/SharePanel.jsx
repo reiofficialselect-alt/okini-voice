@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
 
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://okini-voice.vercel.app'
 
@@ -10,22 +9,13 @@ export default function SharePanel({ review }) {
 
   var shareUrl = BASE_URL + '/api/og?id=' + review.id + '&mode=html'
 
-  async function getTrackingUrl() {
-    try {
-      var shortId = Math.random().toString(36).slice(2, 8)
-      await supabase.from('short_urls').insert([{ id: shortId, review_id: review.id }])
-      return BASE_URL + '/api/s?id=' + shortId
-    } catch { return shareUrl }
-  }
-
   async function handleShare() {
     setStatus('preparing')
     try {
-      var trackUrl = BASE_URL + '/api/og?id=' + review.id + '&mode=html'
-      var text = 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u58f0\ud83c\udf38\n' + trackUrl
+      var text = 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u58f0\ud83c\udf38\n' + shareUrl
 
       if (navigator.share) {
-        await navigator.share({ title: 'OKINI Tokyo | Real Voice', text: text, url: trackUrl })
+        await navigator.share({ text: text })
         setStatus('shared')
         setTimeout(function(){ setStatus(null) }, 2000)
         return
@@ -37,8 +27,7 @@ export default function SharePanel({ review }) {
     } catch (err) {
       if (err.name === 'AbortError') { setStatus(null); return }
       try {
-        var trackUrl2 = BASE_URL + '/api/og?id=' + review.id + '&mode=html'
-        await navigator.clipboard.writeText(trackUrl2)
+        await navigator.clipboard.writeText(shareUrl)
         setStatus('copied')
         setTimeout(function(){ setStatus(null) }, 2000)
       } catch { setStatus(null) }
