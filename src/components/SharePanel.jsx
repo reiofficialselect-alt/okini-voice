@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://okini-voice.vercel.app'
@@ -21,7 +21,7 @@ export default function SharePanel({ review }) {
   async function handleShare() {
     setStatus('preparing')
     try {
-      var trackUrl = await getTrackingUrl()
+      var trackUrl = BASE_URL + '/api/og?id=' + review.id + '&mode=html'
       var text = 'OKINI Tokyo\u306e\u30ea\u30a2\u30eb\u306a\u58f0\ud83c\udf38\n' + trackUrl
 
       if (navigator.share) {
@@ -37,7 +37,7 @@ export default function SharePanel({ review }) {
     } catch (err) {
       if (err.name === 'AbortError') { setStatus(null); return }
       try {
-        var trackUrl2 = await getTrackingUrl()
+        var trackUrl2 = BASE_URL + '/api/og?id=' + review.id + '&mode=html'
         await navigator.clipboard.writeText(trackUrl2)
         setStatus('copied')
         setTimeout(function(){ setStatus(null) }, 2000)
